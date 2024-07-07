@@ -31,3 +31,6 @@ dependencyResolutionManagement {
 
 include(":app")
 include(":shared-test")
+include(":komposable-architecture")
+include(":komposable-architecture-test")
+include(":komposable-architecture-compiler")
