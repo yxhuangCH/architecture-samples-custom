@@ -179,6 +179,8 @@ dependencies {
     testImplementation(libs.androidx.test.ext)
     testImplementation(libs.androidx.test.rules)
     testImplementation(project(":shared-test"))
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotestMatchers)
 
     // AndroidX Test - Instrumented testing
     androidTestImplementation(libs.androidx.test.core.ktx)

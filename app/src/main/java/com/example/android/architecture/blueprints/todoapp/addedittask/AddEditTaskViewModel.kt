@@ -22,13 +22,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
 import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
+import com.example.android.architecture.blueprints.todoapp.di.DefaultDispatcher
+import com.example.android.architecture.blueprints.todoapp.di.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * UiState for the Add/Edit screen
@@ -48,7 +52,8 @@ data class AddEditTaskUiState(
 @HiltViewModel
 class AddEditTaskViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val taskId: String? = savedStateHandle[TodoDestinationsArgs.TASK_ID_ARG]
@@ -100,6 +105,7 @@ class AddEditTaskViewModel @Inject constructor(
     }
 
     private fun createNewTask() = viewModelScope.launch {
+        Timber.tag(TAG).d("createNewTask Thread: ${Thread.currentThread().name}")
         taskRepository.createTask(uiState.value.title, uiState.value.description)
         _uiState.update {
             it.copy(isTaskSaved = true)
@@ -110,7 +116,7 @@ class AddEditTaskViewModel @Inject constructor(
         if (taskId == null) {
             throw RuntimeException("updateTask() was called but task is new.")
         }
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcher) {
             taskRepository.updateTask(
                 taskId,
                 title = uiState.value.title,
@@ -144,5 +150,9 @@ class AddEditTaskViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "AddEditTaskViewModel"
     }
 }

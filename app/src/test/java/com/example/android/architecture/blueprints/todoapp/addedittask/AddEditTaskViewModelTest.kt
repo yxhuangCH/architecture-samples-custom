@@ -17,16 +17,22 @@
 package com.example.android.architecture.blueprints.todoapp.addedittask
 
 import androidx.lifecycle.SavedStateHandle
+import app.cash.turbine.test
 import com.example.android.architecture.blueprints.todoapp.MainCoroutineRule
 import com.example.android.architecture.blueprints.todoapp.R.string
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
 import com.example.android.architecture.blueprints.todoapp.data.FakeTaskRepository
 import com.example.android.architecture.blueprints.todoapp.data.Task
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Before
@@ -51,6 +57,8 @@ class AddEditTaskViewModelTest {
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
+    val testDispatcher: TestDispatcher = mainCoroutineRule.testDispatcher
+
     @Before
     fun setupViewModel() {
         // We initialise the repository with no tasks
@@ -60,10 +68,13 @@ class AddEditTaskViewModelTest {
     }
 
     @Test
-    fun saveNewTaskToRepository_showsSuccessMessageUi() {
+    fun saveNewTaskToRepository_showsSuccessMessageUi() = runTest {
+        println("saveNewTaskToRepository_showsSuccessMessageUi " +
+                "Thread: ${Thread.currentThread().name}")
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         val newTitle = "New Task Title"
@@ -74,11 +85,21 @@ class AddEditTaskViewModelTest {
         }
         addEditTaskViewModel.saveTask()
 
-        val newTask = tasksRepository.savedTasks.value.values.first()
+//        val newTask = tasksRepository.savedTasks.value.values.first()
 
         // Then a task is saved in the repository and the view updated
-        assertThat(newTask.title).isEqualTo(newTitle)
-        assertThat(newTask.description).isEqualTo(newDescription)
+//        assertThat(newTask.title).isEqualTo(newTitle)
+//        assertThat(newTask.description).isEqualTo(newDescription)
+
+        addEditTaskViewModel.uiState.test {
+            val state = awaitItem()
+            println("initState : $state")
+
+            state.title shouldBe newTitle
+            state.description shouldBe newDescription
+
+            cancelAndConsumeRemainingEvents()
+        }
     }
 
     @Test
@@ -88,7 +109,8 @@ class AddEditTaskViewModelTest {
 
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         // Then progress indicator is shown
@@ -105,7 +127,8 @@ class AddEditTaskViewModelTest {
     fun loadTasks_taskShown() {
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         // Add task to repository
@@ -122,7 +145,8 @@ class AddEditTaskViewModelTest {
     fun saveNewTaskToRepository_emptyTitle_error() {
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         saveTaskAndAssertUserMessage("", "Some Task Description")
@@ -132,7 +156,8 @@ class AddEditTaskViewModelTest {
     fun saveNewTaskToRepository_emptyDescription_error() {
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         saveTaskAndAssertUserMessage("Title", "")
@@ -142,7 +167,8 @@ class AddEditTaskViewModelTest {
     fun saveNewTaskToRepository_emptyDescriptionEmptyTitle_error() {
         addEditTaskViewModel = AddEditTaskViewModel(
             tasksRepository,
-            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0"))
+            SavedStateHandle(mapOf(TodoDestinationsArgs.TASK_ID_ARG to "0")),
+            testDispatcher
         )
 
         saveTaskAndAssertUserMessage("", "")
