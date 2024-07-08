@@ -24,12 +24,18 @@ import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
 import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
 import com.example.android.architecture.blueprints.todoapp.di.DefaultDispatcher
 import com.example.android.architecture.blueprints.todoapp.di.IoDispatcher
+import com.example.android.architecture.blueprints.todoapp.redux.addedittask.AddEditTaskAction
+import com.toggl.komposable.architecture.Store
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -54,6 +60,7 @@ class AddEditTaskViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
+    private val appStore: Store<AddEditTaskUiState, AddEditTaskAction>
 ) : ViewModel() {
 
     private val taskId: String? = savedStateHandle[TodoDestinationsArgs.TASK_ID_ARG]
@@ -68,6 +75,11 @@ class AddEditTaskViewModel @Inject constructor(
         if (taskId != null) {
             loadTask(taskId)
         }
+
+        appStore.state.onEach {
+            Timber.tag(TAG).d("appStore.state $it")
+            _uiState.emit(it)
+        }.launchIn(viewModelScope)
     }
 
     // Called when clicking on fab.
@@ -129,27 +141,29 @@ class AddEditTaskViewModel @Inject constructor(
     }
 
     private fun loadTask(taskId: String) {
-        _uiState.update {
-            it.copy(isLoading = true)
-        }
-        viewModelScope.launch {
-            taskRepository.getTask(taskId).let { task ->
-                if (task != null) {
-                    _uiState.update {
-                        it.copy(
-                            title = task.title,
-                            description = task.description,
-                            isTaskCompleted = task.isCompleted,
-                            isLoading = false
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(isLoading = false)
-                    }
-                }
-            }
-        }
+//        _uiState.update {
+//            it.copy(isLoading = true)
+//        }
+//        viewModelScope.launch {
+//            taskRepository.getTask(taskId).let { task ->
+//                if (task != null) {
+//                    _uiState.update {
+//                        it.copy(
+//                            title = task.title,
+//                            description = task.description,
+//                            isTaskCompleted = task.isCompleted,
+//                            isLoading = false
+//                        )
+//                    }
+//                } else {
+//                    _uiState.update {
+//                        it.copy(isLoading = false)
+//                    }
+//                }
+//            }
+//        }
+        Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask taskId $taskId")
+        appStore.send(AddEditTaskAction.LoadEditTask(taskId))
     }
 
     companion object {

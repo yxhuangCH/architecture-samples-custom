@@ -147,6 +147,10 @@ dependencies {
     implementation(libs.accompanist.appcompat.theme)
     implementation(libs.accompanist.swiperefresh)
 
+    // Komposable
+    implementation(project(":komposable-architecture"))
+    ksp(project(":komposable-architecture-compiler"))
+
     debugImplementation(composeBom)
     debugImplementation(libs.androidx.compose.ui.tooling.core)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
