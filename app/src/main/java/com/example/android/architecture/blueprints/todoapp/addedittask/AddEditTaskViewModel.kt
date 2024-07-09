@@ -21,24 +21,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.TodoDestinationsArgs
-import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
-import com.example.android.architecture.blueprints.todoapp.di.DefaultDispatcher
 import com.example.android.architecture.blueprints.todoapp.di.IoDispatcher
 import com.example.android.architecture.blueprints.todoapp.redux.addedittask.AddEditTaskAction
 import com.toggl.komposable.architecture.Store
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * UiState for the Add/Edit screen
@@ -57,7 +53,6 @@ data class AddEditTaskUiState(
  */
 @HiltViewModel
 class AddEditTaskViewModel @Inject constructor(
-    private val taskRepository: TaskRepository,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
     private val appStore: Store<AddEditTaskUiState, AddEditTaskAction>
@@ -118,10 +113,10 @@ class AddEditTaskViewModel @Inject constructor(
 
     private fun createNewTask() = viewModelScope.launch {
         Timber.tag(TAG).d("createNewTask Thread: ${Thread.currentThread().name}")
-        taskRepository.createTask(uiState.value.title, uiState.value.description)
-        _uiState.update {
-            it.copy(isTaskSaved = true)
-        }
+        appStore.send(AddEditTaskAction.CreateNewEditTask(
+            title = uiState.value.title,
+            description = uiState.value.description)
+        )
     }
 
     private fun updateTask() {
@@ -129,39 +124,17 @@ class AddEditTaskViewModel @Inject constructor(
             throw RuntimeException("updateTask() was called but task is new.")
         }
         viewModelScope.launch(dispatcher) {
-            taskRepository.updateTask(
-                taskId,
-                title = uiState.value.title,
-                description = uiState.value.description,
+            appStore.send(
+                AddEditTaskAction.UpdateEditTask(
+                    taskId = taskId,
+                    title = uiState.value.title,
+                    description = uiState.value.description
+                )
             )
-            _uiState.update {
-                it.copy(isTaskSaved = true)
-            }
         }
     }
 
     private fun loadTask(taskId: String) {
-//        _uiState.update {
-//            it.copy(isLoading = true)
-//        }
-//        viewModelScope.launch {
-//            taskRepository.getTask(taskId).let { task ->
-//                if (task != null) {
-//                    _uiState.update {
-//                        it.copy(
-//                            title = task.title,
-//                            description = task.description,
-//                            isTaskCompleted = task.isCompleted,
-//                            isLoading = false
-//                        )
-//                    }
-//                } else {
-//                    _uiState.update {
-//                        it.copy(isLoading = false)
-//                    }
-//                }
-//            }
-//        }
         Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask taskId $taskId")
         appStore.send(AddEditTaskAction.LoadEditTask(taskId))
     }
