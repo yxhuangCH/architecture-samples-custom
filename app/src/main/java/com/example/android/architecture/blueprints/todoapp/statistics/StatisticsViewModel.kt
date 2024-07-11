@@ -18,18 +18,17 @@ package com.example.android.architecture.blueprints.todoapp.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.android.architecture.blueprints.todoapp.R
-import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
-import com.example.android.architecture.blueprints.todoapp.util.Async
-import com.example.android.architecture.blueprints.todoapp.util.WhileUiSubscribed
+import com.example.android.architecture.blueprints.todoapp.AppStoreManager
+import com.example.android.architecture.blueprints.todoapp.redux.statistics.StatisticsAction
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * UiState for the statistics screen.
@@ -46,43 +45,28 @@ data class StatisticsUiState(
  */
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    private val taskRepository: TaskRepository
+    storeManager: AppStoreManager
 ) : ViewModel() {
+    private val statisticsStore = storeManager.statisticsStore()
 
-    val uiState: StateFlow<StatisticsUiState> =
-        taskRepository.getTasksStream()
-            .map { Async.Success(it) }
-            .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }
-            .map { taskAsync -> produceStatisticsUiState(taskAsync) }
-            .stateIn(
-                scope = viewModelScope,
-                started = WhileUiSubscribed,
-                initialValue = StatisticsUiState(isLoading = true)
-            )
+    private val _uiState = MutableStateFlow(StatisticsUiState())
+    val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
+    init {
+        statisticsStore.state.onEach {
+            Timber.tag(TAG).d("statisticsStore.state data: $it")
+            _uiState.emit(it)
+        }.launchIn(viewModelScope)
+
+        statisticsStore.send(StatisticsAction.GetTasksAction)
+    }
 
     fun refresh() {
         viewModelScope.launch {
-            taskRepository.refresh()
+            statisticsStore.send(StatisticsAction.RefreshAction)
         }
     }
 
-    private fun produceStatisticsUiState(taskLoad: Async<List<Task>>) =
-        when (taskLoad) {
-            Async.Loading -> {
-                StatisticsUiState(isLoading = true, isEmpty = true)
-            }
-            is Async.Error -> {
-                // TODO: Show error message?
-                StatisticsUiState(isEmpty = true, isLoading = false)
-            }
-            is Async.Success -> {
-                val stats = getActiveAndCompletedStats(taskLoad.data)
-                StatisticsUiState(
-                    isEmpty = taskLoad.data.isEmpty(),
-                    activeTasksPercent = stats.activeTasksPercent,
-                    completedTasksPercent = stats.completedTasksPercent,
-                    isLoading = false
-                )
-            }
-        }
+    companion object {
+        private const val TAG = "StatisticsViewModel"
+    }
 }
