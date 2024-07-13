@@ -7,6 +7,7 @@ import com.example.android.architecture.blueprints.todoapp.data.TaskRepository
 import com.example.android.architecture.blueprints.todoapp.redux.addedittask.AddEditTaskAction
 import com.example.android.architecture.blueprints.todoapp.redux.addedittask.AddEditTaskReducer
 import com.example.android.architecture.blueprints.todoapp.redux.statistics.StatisticsReducer
+import com.example.android.architecture.blueprints.todoapp.redux.taskdetail.TaskDetailReducer
 import com.toggl.komposable.architecture.Reducer
 import com.toggl.komposable.architecture.Store
 import com.toggl.komposable.extensions.combine
@@ -68,7 +69,8 @@ object KomposableModule {
     @Provides
     fun provideAppReducer(
         addEditTaskReducer: AddEditTaskReducer,
-        statisticsReducer: StatisticsReducer
+        statisticsReducer: StatisticsReducer,
+        taskDetailReducer: TaskDetailReducer
     ): Reducer<AppState, AppAction> {
         return combine(
             addEditTaskReducer.pullback(
@@ -86,7 +88,15 @@ object KomposableModule {
                     globalState.copy(statisticsUiState = statisticsUiState)
                 },
                 mapToGlobalAction = { AppAction.Statistics(it) }
-            )
+            ),
+            taskDetailReducer.pullback(
+                mapToLocalState = { it.taskDetailUiState},
+                mapToLocalAction = { (it as? AppAction.TaskDetail)?.actions},
+                mapToGlobalState = { globalState, taskDetailUiState ->
+                    globalState.copy(taskDetailUiState = taskDetailUiState)
+                },
+                mapToGlobalAction = { AppAction.TaskDetail(it) }
+            ),
         )
     }
 
@@ -107,6 +117,20 @@ object KomposableModule {
         @IoDispatcher
         ioDispatcher: CoroutineDispatcher
     ): StatisticsReducer = StatisticsReducer(
+        taskRepository = taskRepository,
+        scope = scope,
+        ioDispatcher = ioDispatcher
+    )
+
+    @Singleton
+    @Provides
+    fun provideSTaskDetailReducer(
+        taskRepository: TaskRepository,
+        @ApplicationScope
+        scope: CoroutineScope,
+        @IoDispatcher
+        ioDispatcher: CoroutineDispatcher
+    ): TaskDetailReducer = TaskDetailReducer(
         taskRepository = taskRepository,
         scope = scope,
         ioDispatcher = ioDispatcher

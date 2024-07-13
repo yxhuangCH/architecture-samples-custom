@@ -52,8 +52,8 @@ class StatisticsEffect(
         }
     }
 
-    private fun handleGetTasks(collector: ProducerScope<StatisticsAction>) {
-        scope.launch {
+    private fun handleGetTasks(producerScope: ProducerScope<StatisticsAction>) {
+        producerScope.launch {
             taskRepository.getTasksStream()
                 .map { Async.Success(it) }
                 .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }
@@ -62,7 +62,7 @@ class StatisticsEffect(
                 }.flowOn(ioDispatcher)
                 .collect { action ->
                     Timber.tag(TAG).d("handleGetTasks action: $action")
-                    collector.channel.send(action)
+                    producerScope.channel.send(action)
                 }
         }
     }
