@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Default implementation of [TaskRepository]. Single entry point for managing tasks' data.
@@ -49,6 +50,7 @@ class DefaultTaskRepository @Inject constructor(
 ) : TaskRepository {
 
     override suspend fun createTask(title: String, description: String): String {
+        Timber.tag(TAG).d("createTask title: $title description: $description")
         // ID creation might be a complex operation so it's executed using the supplied
         // coroutine dispatcher
         val taskId = withContext(dispatcher) {
@@ -65,6 +67,7 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override suspend fun updateTask(taskId: String, title: String, description: String) {
+        Timber.tag(TAG).d("updateTask taskId:$taskId title: $title description: $description")
         val task = getTask(taskId)?.copy(
             title = title,
             description = description
@@ -75,6 +78,7 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override suspend fun getTasks(forceUpdate: Boolean): List<Task> {
+        Timber.tag(TAG).d("getTasks forceUpdate:$forceUpdate")
         if (forceUpdate) {
             refresh()
         }
@@ -84,7 +88,9 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override fun getTasksStream(): Flow<List<Task>> {
+        Timber.tag(TAG).d("getTasksStream")
         return localDataSource.observeAll().map { tasks ->
+            Timber.tag(TAG).d("getTasksStream observeAll")
             withContext(dispatcher) {
                 tasks.toExternal()
             }
@@ -92,10 +98,12 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override suspend fun refreshTask(taskId: String) {
+        Timber.tag(TAG).d("refreshTask taskId: $taskId")
         refresh()
     }
 
     override fun getTaskStream(taskId: String): Flow<Task?> {
+        Timber.tag(TAG).d("getTaskStream taskId: $taskId")
         return localDataSource.observeById(taskId).map { it.toExternal() }
     }
 
@@ -106,6 +114,7 @@ class DefaultTaskRepository @Inject constructor(
      * @param forceUpdate - true if the task should be updated from the network data source first.
      */
     override suspend fun getTask(taskId: String, forceUpdate: Boolean): Task? {
+        Timber.tag(TAG).d("getTask taskId: $taskId forceUpdate: $forceUpdate")
         if (forceUpdate) {
             refresh()
         }
@@ -113,26 +122,31 @@ class DefaultTaskRepository @Inject constructor(
     }
 
     override suspend fun completeTask(taskId: String) {
+        Timber.tag(TAG).d("completeTask: $taskId")
         localDataSource.updateCompleted(taskId = taskId, completed = true)
         saveTasksToNetwork()
     }
 
     override suspend fun activateTask(taskId: String) {
+        Timber.tag(TAG).d("activateTask: $taskId")
         localDataSource.updateCompleted(taskId = taskId, completed = false)
         saveTasksToNetwork()
     }
 
     override suspend fun clearCompletedTasks() {
+        Timber.tag(TAG).d("clearCompletedTasks")
         localDataSource.deleteCompleted()
         saveTasksToNetwork()
     }
 
     override suspend fun deleteAllTasks() {
+        Timber.tag(TAG).d("deleteAllTasks")
         localDataSource.deleteAll()
         saveTasksToNetwork()
     }
 
     override suspend fun deleteTask(taskId: String) {
+        Timber.tag(TAG).d("deleteTask: $taskId")
         localDataSource.deleteById(taskId)
         saveTasksToNetwork()
     }
@@ -155,6 +169,7 @@ class DefaultTaskRepository @Inject constructor(
      * `withContext` is used here in case the bulk `toLocal` mapping operation is complex.
      */
     override suspend fun refresh() {
+        Timber.tag(TAG).d("refresh:")
         withContext(dispatcher) {
             val remoteTasks = networkDataSource.loadTasks()
             localDataSource.deleteAll()
@@ -183,5 +198,9 @@ class DefaultTaskRepository @Inject constructor(
                 // to an app level UI state holder which could then display a Toast message.
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "DefaultTaskRepository"
     }
 }

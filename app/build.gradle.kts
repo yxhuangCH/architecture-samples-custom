@@ -39,6 +39,7 @@ android {
                 arguments += "room.incremental" to "true"
             }
         }
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -150,6 +151,8 @@ dependencies {
     // Komposable
     implementation(project(":komposable-architecture"))
     ksp(project(":komposable-architecture-compiler"))
+
+    implementation(libs.androidx.multidex)
 
     debugImplementation(composeBom)
     debugImplementation(libs.androidx.compose.ui.tooling.core)

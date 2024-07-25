@@ -68,14 +68,14 @@ class AddEditTaskViewModel @Inject constructor(
     val uiState: StateFlow<AddEditTaskUiState> = _uiState.asStateFlow()
 
     init {
-        if (taskId != null) {
-            loadTask(taskId)
-        }
-
         addEditStore.state.onEach {
             Timber.tag(TAG).d("appStore.state $it")
             _uiState.emit(it)
         }.launchIn(viewModelScope)
+
+        if (taskId != null) {
+            loadTask(taskId)
+        }
     }
 
     // Called when clicking on fab.

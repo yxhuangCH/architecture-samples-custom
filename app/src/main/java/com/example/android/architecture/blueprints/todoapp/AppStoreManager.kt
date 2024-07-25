@@ -4,8 +4,10 @@ import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTa
 import com.example.android.architecture.blueprints.todoapp.redux.addedittask.AddEditTaskAction
 import com.example.android.architecture.blueprints.todoapp.redux.statistics.StatisticsAction
 import com.example.android.architecture.blueprints.todoapp.redux.taskdetail.TaskDetailAction
+import com.example.android.architecture.blueprints.todoapp.redux.tasks.TasksActions
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsUiState
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailUiState
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksUiState
 import com.toggl.komposable.architecture.Store
 import javax.inject.Inject
 
@@ -27,6 +29,11 @@ class AppStoreManager @Inject constructor() {
     fun taskDetailStore(): Store<TaskDetailUiState, TaskDetailAction> = appStore.view(
         mapToLocalState = { it.taskDetailUiState },
         mapToGlobalAction = { AppAction.TaskDetail(it) }
+    )
+
+    fun tasksStore(): Store<TasksUiState, TasksActions> = appStore.view(
+        mapToLocalState = { it.tasksUiState },
+        mapToGlobalAction = { AppAction.TasksAction(it) }
     )
 
 }

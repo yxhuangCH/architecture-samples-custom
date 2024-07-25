@@ -6,6 +6,7 @@ import com.toggl.komposable.architecture.Effect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 
 class AddEditTaskSideEffect(
     private val action: AddEditTaskAction,
@@ -14,15 +15,18 @@ class AddEditTaskSideEffect(
     override fun run(): Flow<AddEditTaskAction> = flow {
         when (action) {
             is AddEditTaskAction.LoadEditTask -> {
+                Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask")
                 emit(AddEditTaskAction.Loading)
                 handleLoadTask(action, this)
             }
 
             is AddEditTaskAction.CreateNewEditTask -> {
+                Timber.tag(TAG).d("AddEditTaskAction.CreateNewEditTask")
                 handleCreateNewTask(action, this)
             }
 
             is AddEditTaskAction.UpdateEditTask -> {
+                Timber.tag(TAG).d("AddEditTaskAction.UpdateEditTask")
                 handleUpdateTask(action, this)
             }
 
@@ -77,5 +81,9 @@ class AddEditTaskSideEffect(
         collector.emit(
             AddEditTaskAction.LoadedEditTask(AddEditTaskUiMode(isTaskSaved = true))
         )
+    }
+
+    companion object {
+        private const val TAG = "AddEditTaskSideEffect"
     }
 }

@@ -99,7 +99,7 @@ fun TasksScreen(
 
         TasksContent(
             loading = uiState.isLoading,
-            tasks = uiState.items,
+            tasks = uiState.filteredTodos,
             currentFilteringLabel = uiState.filteringUiInfo.currentFilteringLabel,
             noTasksLabel = uiState.filteringUiInfo.noTasksLabel,
             noTasksIconRes = uiState.filteringUiInfo.noTaskIconRes,

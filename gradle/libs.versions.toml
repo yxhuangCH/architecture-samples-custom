@@ -69,6 +69,8 @@ kotlinCompileTesting = "1.5.0"
 kotlinCompileTestingKsp = "1.5.0"
 junit5Plugin = "1.8.2.1"
 
+multidex = "2.0.1"
+
 [libraries]
 accompanist-appcompat-theme = { group = "com.google.accompanist", name = "accompanist-appcompat-theme", version.ref = "accompanist" }
 accompanist-flowlayout = { group = "com.google.accompanist", name = "accompanist-flowlayout", version.ref = "accompanist" }
@@ -164,6 +166,8 @@ kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlin
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
 kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlinCompileTestingKsp" }
+
+androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
 
 
 [plugins]
