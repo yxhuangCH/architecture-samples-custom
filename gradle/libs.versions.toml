@@ -57,7 +57,7 @@ timber = "5.0.1"
 # @keep
 targetSdk = "33"
 truth = "1.1.2"
-turbine = "0.12.1"
+turbine = "1.0.0"
 
 junitJupiter = "5.7.1"
 mockK = "1.13.4"

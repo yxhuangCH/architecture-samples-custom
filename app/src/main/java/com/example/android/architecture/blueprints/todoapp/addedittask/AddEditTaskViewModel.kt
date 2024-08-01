@@ -137,7 +137,7 @@ class AddEditTaskViewModel @Inject constructor(
 
     private fun loadTask(taskId: String) {
         Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask taskId $taskId")
-        addEditStore.send(AddEditTaskAction.LoadEditTask(taskId))
+        addEditStore.send(AddEditTaskAction.FetchTask(taskId))
     }
 
     companion object {

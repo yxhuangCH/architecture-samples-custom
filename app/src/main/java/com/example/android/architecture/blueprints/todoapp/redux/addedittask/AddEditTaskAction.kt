@@ -4,7 +4,7 @@ import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTa
 
 sealed class AddEditTaskAction {
 
-    data class LoadEditTask(val taskId: String) : AddEditTaskAction()
+    data class FetchTask(val taskId: String) : AddEditTaskAction()
 
     data class LoadedEditTask(
         val addEditTaskUiMode: AddEditTaskUiMode

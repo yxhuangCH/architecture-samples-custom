@@ -14,7 +14,7 @@ class AddEditTaskSideEffect(
 ) : Effect<AddEditTaskAction> {
     override fun run(): Flow<AddEditTaskAction> = flow {
         when (action) {
-            is AddEditTaskAction.LoadEditTask -> {
+            is AddEditTaskAction.FetchTask -> {
                 Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask")
                 emit(AddEditTaskAction.Loading)
                 handleLoadTask(action, this)
@@ -35,7 +35,7 @@ class AddEditTaskSideEffect(
     }
 
     private suspend fun handleLoadTask(
-        action: AddEditTaskAction.LoadEditTask,
+        action: AddEditTaskAction.FetchTask,
         collector: FlowCollector<AddEditTaskAction>
     ) {
         val task = taskRepository.getTask(action.taskId)

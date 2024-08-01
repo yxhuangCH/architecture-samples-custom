@@ -10,12 +10,12 @@ import timber.log.Timber
 
 class AddEditTaskReducer(
     private val taskRepository: TaskRepository,
-): Reducer<AddEditTaskUiState, AddEditTaskAction> {
+) : Reducer<AddEditTaskUiState, AddEditTaskAction> {
     override fun reduce(
         state: AddEditTaskUiState,
         action: AddEditTaskAction
     ): ReduceResult<AddEditTaskUiState, AddEditTaskAction> = when (action) {
-        is AddEditTaskAction.LoadEditTask,
+        is AddEditTaskAction.FetchTask,
         is AddEditTaskAction.CreateNewEditTask -> {
             Timber.tag(TAG).d("AddEditTaskAction.LoadEditTask")
             state.withFlowEffect(
@@ -30,7 +30,7 @@ class AddEditTaskReducer(
 
         is AddEditTaskAction.LoadedEditTask -> {
             Timber.tag(TAG).d("AddEditTaskAction.LoadedEditTask action: ${action.addEditTaskUiMode}")
-            AddEditTaskUiState(
+            state.copy(
                 title = action.addEditTaskUiMode.title,
                 description = action.addEditTaskUiMode.description,
                 isTaskCompleted = action.addEditTaskUiMode.isTaskCompleted,
@@ -45,10 +45,6 @@ class AddEditTaskReducer(
             state.withFlowEffect(
                 AddEditTaskSideEffect(action = action, taskRepository = taskRepository).run()
             )
-        }
-
-        else -> {
-            state.withoutEffect()
         }
     }
 

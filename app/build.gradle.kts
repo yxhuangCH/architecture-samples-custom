@@ -189,6 +189,9 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotestMatchers)
 
+    // redux
+    testImplementation(project(":komposable-architecture-test"))
+
     // AndroidX Test - Instrumented testing
     androidTestImplementation(libs.androidx.test.core.ktx)
     androidTestImplementation(libs.androidx.test.ext)
