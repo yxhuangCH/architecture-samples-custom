@@ -30,11 +30,15 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
         mapToGlobalAction: (ViewAction) -> Action?,
     ): Store<ViewState, ViewAction> = MutableStateFlowStore(
         state = state.map {
-            mapToLocalState(it)
+            val resultState =  mapToLocalState(it)
+            println("MutableStateFlowStore mapToLocalState resultState : $resultState")
+            resultState
         }.distinctUntilChanged(),
 
         sendFn = { actions ->
+            println("MutableStateFlowStore mapToGlobalAction origin actions: $actions")
             val globalActions = actions.mapNotNull(mapToGlobalAction)
+            println("MutableStateFlowStore mapToGlobalAction globalActions : $globalActions")
             sendFn(globalActions)
         },
     )
@@ -51,9 +55,11 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
     )
 
     companion object {
+
+        // create Global App  Store
         fun <State, Action : Any> create(
             initialState: State,
-            reducer: Reducer<State, Action>,
+            reducer: Reducer<State, Action>, // app reducer
             subscription: Subscription<State, Action>,
             exceptionHandler: ExceptionHandler,
             storeScopeProvider: StoreScopeProvider,
@@ -76,12 +82,15 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
                         }
                     }
 
+                    println("MutableStateFlowStore ReduceResult result : $result ")
                     state.value = result.state
+                    println("MutableStateFlowStore ReduceResult result state : ${state.value} ")
 
                     try {
+                        println("MutableStateFlowStore result effect : ${result.effect} ")
                         result.effect.run()
                             .onEach { action ->
-                                println("MutableStateFlowStore result.effect: $action ")
+                                println("MutableStateFlowStore resul send  action: $action ")
                                 send(listOf(action))
                             }
                             .launchIn(storeScope)
@@ -95,7 +104,7 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
                 subscription
                     .subscribe(state)
                     .onEach { action ->
-                        println("MutableStateFlowStore subscribe action: $action")
+                        println("MutableStateFlowStore subscribe send action: $action")
                         send(listOf(action))
                     }
                     .launchIn(storeScope)
@@ -128,6 +137,7 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
     }
 
     override fun send(actions: List<Action>) {
+        println("MutableStateFlowStore send: $actions")
         if (actions.isEmpty()) return
 
         sendFn(actions)

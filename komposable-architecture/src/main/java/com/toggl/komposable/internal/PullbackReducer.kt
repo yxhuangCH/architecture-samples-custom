@@ -16,12 +16,20 @@ internal class PullbackReducer<LocalState, GlobalState, LocalAction, GlobalActio
         state: GlobalState,
         action: GlobalAction,
     ): ReduceResult<GlobalState, GlobalAction> {
-        println("PullbackReducer GlobalState: $state GlobalAction: $action")
-        val localAction = mapToLocalAction(action) ?: return ReduceResult(state, NoEffect)
+        println("MutableStateFlowStore PullbackReducer mapToLocalAction origin action: $action mapToLocalAction: $mapToLocalAction")
+        val tempAction = mapToLocalAction(action)
+        println("MutableStateFlowStore PullbackReducer mapToLocalAction tempAction: $tempAction")
+        val localAction = tempAction ?: return ReduceResult(state, NoEffect)
+        println("MutableStateFlowStore PullbackReducer mapToLocalAction localAction action: $localAction")
 
-        println("PullbackReducer innerReducer state: $state localAction: $localAction")
-        val localResult = innerReducer.reduce(mapToLocalState(state), localAction)
+        println("MutableStateFlowStore PullbackReducer mapToLocalState origin state: $state")
+        val localState = mapToLocalState(state)
+        println("MutableStateFlowStore PullbackReducer mapToLocalState localState: $localState")
+        val localResult = innerReducer.reduce(localState, localAction) // innerReducer is divisional reducer
 
+        println("MutableStateFlowStore PullbackReducer localResult : $localResult")
+
+        // app state, app action
         return ReduceResult(
             mapToGlobalState(state, localResult.state),
             localResult.effect.map(mapToGlobalAction),

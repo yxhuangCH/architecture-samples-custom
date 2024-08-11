@@ -53,7 +53,7 @@ class StatisticsEffect(
     }
 
     private fun handleGetTasks(producerScope: ProducerScope<StatisticsAction>) {
-        producerScope.launch {
+        scope.launch {
             taskRepository.getTasksStream()
                 .map { Async.Success(it) }
                 .catch<Async<List<Task>>> { emit(Async.Error(R.string.loading_tasks_error)) }

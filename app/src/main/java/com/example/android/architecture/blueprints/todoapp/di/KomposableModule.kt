@@ -21,6 +21,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.Executors
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
 
@@ -28,12 +30,20 @@ import kotlin.coroutines.CoroutineContext
 @InstallIn(SingletonComponent::class)
 object KomposableModule {
 
+    @Provides
+    @Singleton
+    fun provideSingleThreadDispatcher(): CoroutineDispatcher {
+        return Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    }
+
     @Singleton
     @Provides
-    fun provideDispatcherProvider(): DispatcherProvider = DispatcherProvider(
+    fun provideDispatcherProvider(
+        singleThreadDispatcher: CoroutineDispatcher
+    ): DispatcherProvider = DispatcherProvider(
         io = Dispatchers.IO,
         computation = Dispatchers.Default,
-        main = Dispatchers.Main,
+        main = singleThreadDispatcher,
     )
 
     @Singleton
@@ -53,7 +63,7 @@ object KomposableModule {
 
     @Singleton
     @Provides
-    fun provideStore(
+    fun provideAppStore(
         appReducer: Reducer<AppState, AppAction>,
         storeScopeProvider: StoreScopeProvider,
         dispatcherProvider: DispatcherProvider
@@ -85,9 +95,12 @@ object KomposableModule {
                 mapToLocalState = { it.statisticsUiState},
                 mapToLocalAction = { (it as? AppAction.Statistics)?.actions},
                 mapToGlobalState = { globalState, statisticsUiState ->
-                    globalState.copy(statisticsUiState = statisticsUiState)
+                    globalState.copy(statisticsUiState = statisticsUiState) // Update app state
                 },
-                mapToGlobalAction = { AppAction.Statistics(it) }
+                mapToGlobalAction = {
+                    println("MutableStateFlowStore KomposableModule mapToGlobalAction: $it")
+                    AppAction.Statistics(it)
+                } // Update  AppAction
             ),
             taskDetailReducer.pullback(
                 mapToLocalState = { it.taskDetailUiState},

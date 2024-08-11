@@ -53,10 +53,11 @@ class StatisticsViewModel @Inject constructor(
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
     init {
         statisticsStore.state.onEach {
-            Timber.tag(TAG).d("statisticsStore.state data: $it")
+            Timber.tag(TAG).d("MutableStateFlowStore StatisticsViewModel statisticsStore.state data: $it")
             _uiState.emit(it)
         }.launchIn(viewModelScope)
 
+        Timber.tag(TAG).d("MutableStateFlowStore StatisticsViewModel StatisticsAction.GetTasksAction")
         statisticsStore.send(StatisticsAction.GetTasksAction)
     }
 
