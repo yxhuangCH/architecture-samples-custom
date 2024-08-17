@@ -20,6 +20,7 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -148,17 +149,27 @@ class TestStoreTests {
             val reducer = Reducer<Int, AsyncEffectsAction> { state, action ->
                 when (action) {
                     is AsyncEffectsAction.Tap -> state.withEffect(
-                        Effect.fromSuspend { AsyncEffectsAction.Set(69) },
+                        Effect.fromSuspend {
+                            tests()
+                            AsyncEffectsAction.Set(69)
+                       },
                     )
 
                     is AsyncEffectsAction.Set -> action.value.withoutEffect()
                 }
             }
 
+
+
             reducer.test(0, exhaustiveConfig) {
                 send(AsyncEffectsAction.Tap)
+                advanceTimeBy(2000)
                 receive(AsyncEffectsAction.Set(69)) { 69 }
             }
+        }
+
+        suspend fun tests() {
+            delay(2000)
         }
     }
 

@@ -15,8 +15,7 @@ sealed class ElementAction {
 
 data class ElementState(val elementText: String)
 
-internal val elementReducer =
-    Reducer<ElementState, ElementAction> { state, action ->
+internal val elementReducer = Reducer<ElementState, ElementAction> { state, action ->
         when (action) {
             is ElementAction.EditText ->
                 ReduceResult(state.copy(elementText = action.text), NoEffect)

@@ -39,7 +39,7 @@ internal class MutableStateFlowStore<State, Action : Any> private constructor(
             println("MutableStateFlowStore mapToGlobalAction origin actions: $actions")
             val globalActions = actions.mapNotNull(mapToGlobalAction)
             println("MutableStateFlowStore mapToGlobalAction globalActions : $globalActions")
-            sendFn(globalActions)
+            sendFn(globalActions) // sendFn is the GlobalStore's send function
         },
     )
 
